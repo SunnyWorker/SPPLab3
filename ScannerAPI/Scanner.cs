@@ -11,6 +11,21 @@ public class Scanner : IScanner
 
     private DirectoryType Analyze(DirectoryInfo requiredDirectory, DirectoryType parent)
     {
-        return new DirectoryType(requiredDirectory);
+        DirectoryType directoryType = new DirectoryType(requiredDirectory);
+        foreach (var fileInfo in requiredDirectory.GetFiles())
+        {
+            FileType fileType = new FileType(fileInfo);
+            directoryType.InnerFiles.Add(fileType);
+            directoryType.Size += fileType.Size;
+        }
+
+        foreach (var directoryInfo in requiredDirectory.GetDirectories())
+        {
+            DirectoryType innerDirectoryType = new DirectoryType(directoryInfo);
+            directoryType.InnerDirectories.Add(Analyze(directoryInfo,directoryType));
+            directoryType.Size += innerDirectoryType.Size;
+        }
+
+        return directoryType;
     }
 }

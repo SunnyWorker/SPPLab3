@@ -16,4 +16,11 @@ public class FileType
     {
         _fileInfo = fileInfo;
     }
+    
+    public override string ToString()
+    {
+        string output = "-"+_fileInfo.Name+" - "+Size;
+
+        return output;
+    }
 }

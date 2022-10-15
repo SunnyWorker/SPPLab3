@@ -2,7 +2,7 @@ namespace ScannerAPI.Help;
 
 public class DirectoryType
 {
-    public int Size
+    public long Size
     {
         get;
         set;
@@ -25,8 +25,23 @@ public class DirectoryType
         _directoryInfo = directoryInfo;
         InnerDirectories = new List<DirectoryType>();
         InnerFiles = new List<FileType>();
+        Size = 0;
     }
 
+    public override string ToString()
+    {
+        string output = "-"+_directoryInfo.Name+" - "+Size+"\n";
+        foreach (var innerFile in InnerFiles)
+        {
+            output += innerFile;
+            output += "\n";
+        }
 
+        foreach (var innerDirectory in InnerDirectories)
+        {
+            output += innerDirectory;
+        }
 
+        return output;
+    }
 }
