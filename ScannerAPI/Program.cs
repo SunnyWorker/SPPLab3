@@ -4,6 +4,7 @@ using ScannerAPI;
 using ScannerAPI.Help;
 
 IScanner scanner = new Scanner();
-DirectoryInfo directoryInfo = new DirectoryInfo("D:\\Arduino");
+DirectoryInfo directoryInfo = new DirectoryInfo("D:\\Hamachi");
 DirectoryType directoryType = scanner.Analyze(directoryInfo);
+scanner.SetPercents(directoryType);
 Console.WriteLine(directoryType);
