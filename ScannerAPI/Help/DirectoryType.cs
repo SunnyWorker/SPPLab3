@@ -68,12 +68,6 @@ public class DirectoryType
     public void Analyze()
     {
         ThreadPool.QueueUserWorkItem(Analyze);
-        // Thread thread = new Thread(new ThreadStart((() =>
-        // {
-        //     Thread.Sleep(50);
-        //     directoryType.Cancel();
-        // })));
-        // thread.Start();
         WaitTask();
         Percent = 100;
     }
