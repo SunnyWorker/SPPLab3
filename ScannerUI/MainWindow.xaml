@@ -1,0 +1,62 @@
+﻿<Window x:Class="ScannerUI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ScannerUI"
+        xmlns:help="clr-namespace:ScannerAPI.Help;assembly=ScannerAPI"
+        mc:Ignorable="d"
+        Title="MainWindow" Width="1080" Height="768">
+        <Canvas Name="canvas" >
+                <Button Canvas.Top="50" Canvas.Left="930" Visibility="Collapsed"  FontFamily="Roboto" Name="returnButton" Width="100" Height="100" Click="ReturnButton_OnClick">&#60;&#60;</Button>
+                <TextBlock Width="300" Height="30" Canvas.Top="300" Canvas.Left="390"  FontFamily="Roboto" Name="stateTextBlock" TextAlignment="Center" Visibility="Collapsed" FontSize="16"></TextBlock>
+                <Button Name="cancellationButton" Visibility="Collapsed" Width="200"  FontFamily="Roboto" Height="30" Canvas.Top="400" Canvas.Left="440" Click="CancellationButton_OnClick">Отмена</Button>
+                <TextBox Width="300" Height="30" Canvas.Top="300" Canvas.Left="390"  FontFamily="Roboto" FontSize="14" VerticalContentAlignment="Center"  Name="TextBox"></TextBox>
+                <Button Name="Button1" Width="30" Height="30" Canvas.Top="300"  FontFamily="Roboto" Canvas.Left="700" Click="Choose_Directory">...</Button>
+                <Button Name="Button2" Width="200" Height="30" Canvas.Top="400"  FontFamily="Roboto" Canvas.Left="440" FontSize="14" Click="ButtonBase_OnClick">Построить TreeView</Button>
+                <ScrollViewer Name="Viewer" Visibility="Collapsed" BorderThickness="0" Height="728">
+                        <TreeView VirtualizingStackPanel.IsVirtualizing="True" VirtualizingStackPanel.VirtualizationMode="Recycling"  Name="treeView" BorderThickness="0">
+                                <TreeView.Resources>
+                                        <HierarchicalDataTemplate DataType="{x:Type help:DirectoryType}">
+                                                <StackPanel Orientation="Vertical">
+                                                        <StackPanel Orientation="Horizontal" Height="20">
+                                                                <TextBlock Text="· "></TextBlock>
+                                                                <Image Visibility="Visible" Width="20" Height="20" Source="assets/directory.png"></Image>
+                                                                <TextBlock Text="{Binding Name}"></TextBlock>
+                                                                <TextBlock Text=" "></TextBlock>
+                                                                <TextBlock Text="{Binding Size}"></TextBlock>        
+                                                                <TextBlock Text=" "></TextBlock>        
+                                                                <TextBlock Text="{Binding PercentString}"></TextBlock>  
+                                                                <TextBlock Text=" %"></TextBlock>        
+                                                        </StackPanel>
+                                                        <ListBox ItemsSource="{Binding InnerFiles}" BorderThickness="0"></ListBox>
+                                                        <ListBox ItemsSource="{Binding InnerDirectories}" BorderThickness="0"></ListBox>    
+                                                </StackPanel>
+                                        </HierarchicalDataTemplate>
+                                        <!-- <HierarchicalDataTemplate DataType="{x:Type help:DirectoryType}"  ItemsSource="{Binding InnerDirectories}"> -->
+                                        <!--         <StackPanel Orientation="Horizontal"> -->
+                                        <!--                 <TextBlock Text="{Binding Name}"></TextBlock> -->
+                                        <!--                 <TextBlock Text=" "></TextBlock> -->
+                                        <!--                 <TextBlock Text="{Binding Size}"></TextBlock>         -->
+                                        <!--                 <TextBlock Text=" "></TextBlock>         -->
+                                        <!--                 <TextBlock Text="{Binding PercentString}"></TextBlock>   -->
+                                        <!--                 <TextBlock Text=" %"></TextBlock>         -->
+                                        <!--         </StackPanel> -->
+                                        <!-- </HierarchicalDataTemplate> -->
+                                        <DataTemplate DataType="{x:Type help:FileType}">
+                                                <StackPanel Orientation="Horizontal" Height="20">
+                                                        <TextBlock Text="· "></TextBlock>
+                                                        <Image Visibility="Visible"  Width="20" Height="20" Source="assets/file.png"></Image>
+                                                        <TextBlock Text="{Binding Name}"></TextBlock>
+                                                        <TextBlock Text=" "></TextBlock>
+                                                        <TextBlock Text="{Binding Size}"></TextBlock>        
+                                                        <TextBlock Text=" "></TextBlock>        
+                                                        <TextBlock Text="{Binding PercentString}"></TextBlock>  
+                                                        <TextBlock Text=" %"></TextBlock>        
+                                                </StackPanel>  
+                                        </DataTemplate>
+                                </TreeView.Resources>
+                        </TreeView>
+                </ScrollViewer>
+        </Canvas>
+</Window>

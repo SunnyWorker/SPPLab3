@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net6.0-windows</TargetFramework>
+        <Nullable>enable</Nullable>
+        <UseWPF>true</UseWPF>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="WPFFolderBrowser" Version="1.0.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ScannerAPI\ScannerAPI.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="assets\file.png" />
+      <Resource Include="assets\file.png" />
+      <None Remove="assets\directory.png" />
+      <Resource Include="assets\directory.png" />
+    </ItemGroup>
+
+</Project>

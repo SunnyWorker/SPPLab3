@@ -7,9 +7,7 @@ using ScannerAPI.Help;
 
 var watch = new System.Diagnostics.Stopwatch();
 watch.Start();
-DirectoryType directoryType = new DirectoryType(new DirectoryInfo("D:\\Steam"));
-ThreadPool.QueueUserWorkItem(directoryType.Analyze);
-directoryType.WaitTask();
+DirectoryType directoryType = new("D:\\Hamachi");
 watch.Stop();
 Console.WriteLine(directoryType);
 

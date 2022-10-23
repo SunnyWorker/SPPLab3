@@ -2,15 +2,25 @@ namespace ScannerAPI.Help;
 
 public class FileType
 {
-    public int Nesting
+    public string Name
     {
-        get;
-        set;
+        get
+        {
+            return _fileInfo.Name;
+        }
     }
     public double Percent
     {
         get;
         set;
+    }
+
+    public string PercentString
+    {
+        get
+        {
+            return String.Format("{0:0.00}", Percent);
+        }
     }
     public long Size
     {
@@ -30,12 +40,7 @@ public class FileType
     public override string ToString()
     {
         string output = "";
-        for (int i = 0; i < Nesting; i++)
-        {
-            output += "\t";
-        }
-        output += "-"+_fileInfo.Name+" - "+Size+" - "+String.Format("{0:0.00}", Percent)+" % "+Nesting+"\n";
-
+        output += _fileInfo.Name+" - "+Size+" - "+String.Format("{0:0.00}", Percent)+" %";
         return output;
     }
 }

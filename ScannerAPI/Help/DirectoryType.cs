@@ -1,30 +1,57 @@
 using System.Collections.Concurrent;
+using DirectoryInfo = System.IO.DirectoryInfo;
 
 namespace ScannerAPI.Help;
 
 public class DirectoryType
 {
-    private static Semaphore pool = new(3, 3);
+    private static Semaphore pool = new(1, 1);
 
     private DirectoryInfo directoryInfo;
-    
-    private int Nesting;
 
     private double Percent;
 
-    private long Size;
+    private static CancellationTokenSource cts;
+
+    public string PercentString
+    {
+        get
+        {
+            return String.Format("{0:0.00}", Percent);
+        }
+    }
+
+    public long Size
+    {
+        get;
+        set;
+    }
 
     private bool ready;
 
     private DirectoryType Parent;
 
-    private List<DirectoryType> InnerDirectories;
-
-    private List<FileType> InnerFiles;
-    
-    public DirectoryType(DirectoryInfo directoryInfo, DirectoryType parent, int nesting)
+    public String Name
     {
-        Nesting = nesting;
+        get
+        {
+            return directoryInfo.Name;
+        }
+    }
+
+    public List<DirectoryType> InnerDirectories
+    {
+        get;
+    }
+
+    public List<FileType> InnerFiles
+    {
+        get;
+    }
+    
+    private DirectoryType(DirectoryInfo directoryInfo, DirectoryType parent)
+    {
+        cts = new();
         this.directoryInfo = directoryInfo;
         Parent = parent;
         ready = false;
@@ -33,20 +60,37 @@ public class DirectoryType
         Size = 0;
     }
     
-    public DirectoryType(DirectoryInfo directoryInfo) : this(directoryInfo, null, 0)
+    public DirectoryType(string path) : this(new(path), null)
     {
         
     }
 
-    public void Analyze(object? state)
+    public void Analyze()
+    {
+        ThreadPool.QueueUserWorkItem(Analyze);
+        // Thread thread = new Thread(new ThreadStart((() =>
+        // {
+        //     Thread.Sleep(50);
+        //     directoryType.Cancel();
+        // })));
+        // thread.Start();
+        WaitTask();
+        Percent = 100;
+    }
+
+    private void Analyze(object obj)
     {
         pool.WaitOne();
         long fileSize = 0;
         foreach (var fileInfo in directoryInfo.GetFiles())
         {
+            if (cts.Token.IsCancellationRequested)
+            {
+                pool.Release();
+                return;
+            }
             if(fileInfo.LinkTarget!=null) continue;
             FileType fileType = new FileType(fileInfo);
-            fileType.Nesting = Nesting + 1;
             InnerFiles.Add(fileType);
             fileSize += fileType.Size;
         }
@@ -71,7 +115,12 @@ public class DirectoryType
 
         foreach (var innerDirectoryInfo in directoryInfo.GetDirectories())
         {
-            DirectoryType innerDirectoryType = new DirectoryType(innerDirectoryInfo,this,Nesting+1);
+            if (cts.Token.IsCancellationRequested)
+            {
+                pool.Release();
+                return;
+            }
+            DirectoryType innerDirectoryType = new DirectoryType(innerDirectoryInfo,this);
             InnerDirectories.Add(innerDirectoryType);
         }
         
@@ -89,6 +138,11 @@ public class DirectoryType
         {
             double size1 = fileType.Size * 100;
             double size2 = Size;
+            if (size1 < 1 && size2 < 1)
+            {
+                fileType.Percent = 0;
+                continue;
+            }
             try
             {
                 fileType.Percent = size1 / size2;
@@ -103,6 +157,11 @@ public class DirectoryType
         {
             double size1 = innerDirectoryType.Size * 100;
             double size2 = Size;
+            if (size1 < 1 && size2 < 1)
+            {
+                innerDirectoryType.Percent = 0;
+                continue;
+            }
             try
             {
                 innerDirectoryType.Percent = size1 / size2;
@@ -115,12 +174,17 @@ public class DirectoryType
 
     }
 
-    private void TryAddSize(object? state)
+    private void TryAddSize(object? obj)
     {
         pool.WaitOne();
         Percentage();
         if (Parent != null)
         {
+            if (cts.Token.IsCancellationRequested)
+            {
+                pool.Release();
+                return;
+            }
             Parent.TryAddSize(this);
         }
         pool.Release();
@@ -136,8 +200,17 @@ public class DirectoryType
             foreach (var innerDirectory in InnerDirectories)
             {
                 if(innerDirectory.ready==false) return;
+                if (cts.Token.IsCancellationRequested)
+                {
+                    pool.Release();
+                    return;
+                }
             }
-
+            if (cts.Token.IsCancellationRequested)
+            {
+                pool.Release();
+                return;
+            }
             Percentage();
         
             if (Parent != null)
@@ -158,22 +231,14 @@ public class DirectoryType
     public override string ToString()
     {
         string output = "";
-        for (int i = 0; i < Nesting; i++)
-        {
-            output += "\t";
-        }
-        output += "-"+directoryInfo.Name+" - "+Size+" - "+String.Format("{0:0.00}", Percent)+" % "+Nesting+"\n";
-        foreach (var innerFile in InnerFiles)
-        {
-            output += innerFile;
-        }
-
-        foreach (var innerDirectory in InnerDirectories)
-        {
-            output += innerDirectory;
-        }
-
+        output += directoryInfo.Name + " - " + Size + " - " + String.Format("{0:0.00}", Percent) + " %";
         return output;
+    }
+
+    public void Cancel()
+    {
+        ready = true;
+        cts.Cancel();
     }
 
     
