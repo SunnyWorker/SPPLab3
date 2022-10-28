@@ -122,7 +122,6 @@ public class ApplicationViewModel : INotifyPropertyChanged
     
     private void GenerateTreeView()
     {
-        CancellationTokenSource source = new();
         string path = "";
         path = TextBoxString.Replace("\\","\\\\");
         directoryType = new(path);

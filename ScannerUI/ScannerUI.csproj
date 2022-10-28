@@ -12,14 +12,14 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\ScannerAPI\ScannerAPI.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
       <None Remove="assets\file.png" />
       <Resource Include="assets\file.png" />
       <None Remove="assets\directory.png" />
       <Resource Include="assets\directory.png" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ScannerAPI\ScannerAPI.csproj" />
     </ItemGroup>
 
 </Project>

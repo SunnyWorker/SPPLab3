@@ -4,7 +4,8 @@ using ScannerAPI.Help;
 
 var watch = new System.Diagnostics.Stopwatch();
 watch.Start();
-DirectoryType directoryType = new("D:\\Hamachi");
+DirectoryType directoryType = new("D:\\CodeBlocks");
+directoryType.Analyze();
 watch.Stop();
 Console.WriteLine(directoryType);
 

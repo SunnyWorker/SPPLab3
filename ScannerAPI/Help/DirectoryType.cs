@@ -5,7 +5,7 @@ namespace ScannerAPI.Help;
 
 public class DirectoryType
 {
-    private static Semaphore pool = new(1, 1);
+    private static Semaphore pool = new(10, 10);
 
     private DirectoryInfo directoryInfo;
 
@@ -180,6 +180,10 @@ public class DirectoryType
                 return;
             }
             Parent.TryAddSize(this);
+        }
+        else
+        {
+            ready = true;
         }
         pool.Release();
     }
