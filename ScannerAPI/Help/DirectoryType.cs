@@ -5,7 +5,7 @@ namespace ScannerAPI.Help;
 
 public class DirectoryType
 {
-    private static Semaphore pool = new(10, 10);
+    private static Semaphore pool = new(12, 12);
 
     private DirectoryInfo directoryInfo;
 
@@ -68,6 +68,7 @@ public class DirectoryType
     public void Analyze()
     {
         ThreadPool.QueueUserWorkItem(Analyze);
+        //Thread.Sleep(9000);
         WaitTask();
         Percent = 100;
     }
@@ -75,6 +76,16 @@ public class DirectoryType
     private void Analyze(object obj)
     {
         pool.WaitOne();
+        try
+        {
+            directoryInfo.GetFiles();
+        }
+        catch (UnauthorizedAccessException e)
+        {
+            ThreadPool.QueueUserWorkItem(TryAddSize);
+            pool.Release();
+            return;
+        }
         long fileSize = 0;
         foreach (var fileInfo in directoryInfo.GetFiles())
         {
@@ -200,13 +211,11 @@ public class DirectoryType
                 if(innerDirectory.ready==false) return;
                 if (cts.Token.IsCancellationRequested)
                 {
-                    pool.Release();
                     return;
                 }
             }
             if (cts.Token.IsCancellationRequested)
             {
-                pool.Release();
                 return;
             }
             Percentage();
