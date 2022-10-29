@@ -13,7 +13,7 @@ public class Tests
     [Test]
     public void DirectoryTest1()
     {
-        DirectoryType directoryType = new("D:\\CodeBlocks");
+        DirectoryType directoryType = new("CodeBlocks");
         directoryType.Analyze();
         Assert.IsNotNull(directoryType);
         Assert.AreEqual(548803268, directoryType.Size);
@@ -29,7 +29,7 @@ public class Tests
     [Test]
     public void DirectoryTest2()
     {
-        DirectoryType directoryType = new("D:\\Картины");
+        DirectoryType directoryType = new("Картины");
         directoryType.Analyze();
         Assert.IsNotNull(directoryType);
         Assert.AreEqual(73015122, directoryType.Size);
