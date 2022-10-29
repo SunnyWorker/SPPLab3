@@ -69,60 +69,86 @@ public class DirectoryType
     {
         ThreadPool.QueueUserWorkItem(Analyze);
         WaitTask();
+        //Thread.Sleep(9000);
+        Console.WriteLine(ready);
+        foreach (var innerDirectory in InnerDirectories[1].InnerDirectories)
+        {
+            Console.WriteLine(innerDirectory.Name+" "+innerDirectory.ready);
+        }
         Percent = 100;
     }
 
     private void Analyze(object obj)
     {
         pool.WaitOne();
-        long fileSize = 0;
-        foreach (var fileInfo in directoryInfo.GetFiles())
-        {
-            if (cts.Token.IsCancellationRequested)
-            {
-                pool.Release();
-                return;
-            }
-            if(fileInfo.LinkTarget!=null) continue;
-            FileType fileType = new FileType(fileInfo);
-            InnerFiles.Add(fileType);
-            fileSize += fileType.Size;
-        }
-
         try
         {
-            Monitor.Enter(this);
-            Size += fileSize;
+            long fileSize = 0;
+            
+            foreach (var fileInfo in directoryInfo.GetFiles())
+            {
+                if (cts.Token.IsCancellationRequested)
+                {
+                    pool.Release();
+                    return;
+                }
+
+                if (fileInfo.LinkTarget != null) continue;
+                FileType fileType = new FileType(fileInfo);
+                InnerFiles.Add(fileType);
+                fileSize += fileType.Size;
+            }
+
+            try
+            {
+                Monitor.Enter(this);
+                Size += fileSize;
+            }
+            finally
+            {
+                Monitor.Exit(this);
+            }
+
+
+
+            if (directoryInfo.GetDirectories().Length == 0)
+            {
+                ThreadPool.QueueUserWorkItem(TryAddSize);
+            }
+
+
+
+            foreach (var innerDirectoryInfo in directoryInfo.GetDirectories())
+            {
+                if (cts.Token.IsCancellationRequested)
+                {
+                    pool.Release();
+                    return;
+                }
+
+                DirectoryType innerDirectoryType = new DirectoryType(innerDirectoryInfo, this);
+                InnerDirectories.Add(innerDirectoryType);
+            }
+            
+            foreach (var innerDirectoryType in InnerDirectories)
+            {
+                ThreadPool.QueueUserWorkItem(innerDirectoryType.Analyze);
+            }
+
+        }
+        catch (DirectoryNotFoundException exception)
+        {
+            Console.WriteLine(3+" "+directoryInfo.FullName);
+        }
+        catch (UnauthorizedAccessException exception)
+        {
+            ThreadPool.QueueUserWorkItem(TryAddSize);
+            Console.WriteLine(4+" "+directoryInfo.FullName);
         }
         finally
         {
-            Monitor.Exit(this);
+            pool.Release();
         }
-
-        
-        
-        if (directoryInfo.GetDirectories().Length == 0)
-        {
-            ThreadPool.QueueUserWorkItem(TryAddSize);
-        }
-
-
-        foreach (var innerDirectoryInfo in directoryInfo.GetDirectories())
-        {
-            if (cts.Token.IsCancellationRequested)
-            {
-                pool.Release();
-                return;
-            }
-            DirectoryType innerDirectoryType = new DirectoryType(innerDirectoryInfo,this);
-            InnerDirectories.Add(innerDirectoryType);
-        }
-        
-        foreach (var innerDirectoryType in InnerDirectories)
-        {
-            ThreadPool.QueueUserWorkItem(innerDirectoryType.Analyze);
-        }
-        pool.Release();
 
     }
 
@@ -179,6 +205,7 @@ public class DirectoryType
                 pool.Release();
                 return;
             }
+
             Parent.TryAddSize(this);
         }
         else
@@ -190,40 +217,38 @@ public class DirectoryType
 
     private void TryAddSize(DirectoryType childDirectory)
     {
-        try
+        Monitor.Enter(this);
+        Size += childDirectory.Size;
+        childDirectory.ready = true;
+        
+        foreach (var innerDirectory in InnerDirectories)
         {
-            Monitor.Enter(this);
-            Size += childDirectory.Size;
-            childDirectory.ready = true;
-            foreach (var innerDirectory in InnerDirectories)
-            {
-                if(innerDirectory.ready==false) return;
-                if (cts.Token.IsCancellationRequested)
-                {
-                    pool.Release();
-                    return;
-                }
-            }
+            if (innerDirectory.ready == false) return;
             if (cts.Token.IsCancellationRequested)
             {
-                pool.Release();
+                Monitor.Exit(this);
                 return;
             }
-            Percentage();
-        
-            if (Parent != null)
-            {
-                Parent.TryAddSize(this);
-            }
-            else
-            {
-                ready = true;
-            }
         }
-        finally
+
+        if (cts.Token.IsCancellationRequested)
         {
             Monitor.Exit(this);
+            return;
         }
+
+        Percentage();
+
+        if (Parent != null)
+        {
+            Monitor.Exit(this);
+            Parent.TryAddSize(this);
+        }
+        else
+        {
+            ready = true;
+        }
+        
     }
 
     public override string ToString()
