@@ -4,7 +4,7 @@ using ScannerAPI.Help;
 
 var watch = new System.Diagnostics.Stopwatch();
 watch.Start();
-DirectoryType directoryType = new("C:\\Windows");
+DirectoryType directoryType = new("D:\\CodeBlocks");
 directoryType.Analyze();
 watch.Stop();
 Console.WriteLine(directoryType);
